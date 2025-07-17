@@ -68,7 +68,6 @@ const ClueModal: React.FC<ClueModalProps> = ({ clue, round, isOpen, onClose, onA
         <div className="modal-body">
           <div className="question-display">
             <h3>{categoryName}</h3>
-            <h4>Question:</h4>
             <p className="question-text">{clue.question}</p>
             
             <div className="answer-form">

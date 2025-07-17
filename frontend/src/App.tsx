@@ -13,13 +13,19 @@ function App() {
   const [answeredClues, setAnsweredClues] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [roundType, setRoundType] = useState<RoundType>('jeopardy');
 
-  const generateNewRound = async (roundType: RoundType = 'jeopardy') => {
+  const roundTypeLabels: Record<RoundType, string> = {
+    jeopardy: 'Jeopardy',
+    doublejeopardy: 'Double Jeopardy',
+    finaljeopardy: 'Final Jeopardy',
+  };
+
+  const generateNewRound = async (type: RoundType = roundType) => {
     setIsLoading(true);
     setError(null);
-    
     try {
-      const round = await apiService.generateRound(roundType);
+      const round = await apiService.generateRound(type);
       setCurrentRound(round);
       setAnsweredClues(new Set());
     } catch (err) {
@@ -30,8 +36,9 @@ function App() {
   };
 
   useEffect(() => {
-    generateNewRound();
-  }, []);
+    generateNewRound(roundType);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roundType]);
 
   const handleClueClick = (clue: Clue) => {
     setSelectedClue(clue);
@@ -46,7 +53,6 @@ function App() {
   const handleAnswerSubmit = (isCorrect: boolean, points: number) => {
     if (selectedClue) {
       setAnsweredClues(prev => new Set([...prev, selectedClue.id]));
-      
       if (isCorrect) {
         setScore(prev => prev + points);
       } else {
@@ -57,7 +63,12 @@ function App() {
 
   const handleNewGame = () => {
     setScore(0);
-    generateNewRound();
+    generateNewRound(roundType);
+  };
+
+  const handleRoundTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setRoundType(e.target.value as RoundType);
+    setScore(0);
   };
 
   if (isLoading) {
@@ -74,7 +85,7 @@ function App() {
       <div className="error">
         <h2>Error</h2>
         <p>{error}</p>
-        <button onClick={() => generateNewRound()}>Try Again</button>
+        <button onClick={() => generateNewRound(roundType)}>Try Again</button>
       </div>
     );
   }
@@ -86,20 +97,32 @@ function App() {
           <h2>Score: ${score}</h2>
         </div>
         <div className="game-controls">
+          <label htmlFor="round-type-select" style={{ color: 'white', marginRight: 12 }}>
+            Round:
+          </label>
+          <select
+            id="round-type-select"
+            value={roundType}
+            onChange={handleRoundTypeChange}
+            style={{ marginRight: 16, padding: '6px 12px', borderRadius: 6 }}
+          >
+            <option value="jeopardy">Jeopardy</option>
+            <option value="doublejeopardy">Double Jeopardy</option>
+            <option value="finaljeopardy">Final Jeopardy</option>
+          </select>
           <button onClick={handleNewGame} className="new-game-button">
             New Game
           </button>
         </div>
       </div>
-
       {currentRound && (
         <JeopardyBoard
           round={currentRound}
           onClueClick={handleClueClick}
           answeredClues={answeredClues}
+          roundTypeLabel={roundTypeLabels[roundType]}
         />
       )}
-
       <ClueModal
         clue={selectedClue}
         round={currentRound}

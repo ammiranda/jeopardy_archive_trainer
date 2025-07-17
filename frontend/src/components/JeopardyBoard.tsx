@@ -6,9 +6,10 @@ interface JeopardyBoardProps {
   round: Round;
   onClueClick: (clue: Clue) => void;
   answeredClues: Set<string>;
+  roundTypeLabel: string;
 }
 
-const JeopardyBoard: React.FC<JeopardyBoardProps> = ({ round, onClueClick, answeredClues }) => {
+const JeopardyBoard: React.FC<JeopardyBoardProps> = ({ round, onClueClick, answeredClues, roundTypeLabel }) => {
   const values = [200, 400, 600, 800, 1000];
   
   // Group clues by category
@@ -23,7 +24,7 @@ const JeopardyBoard: React.FC<JeopardyBoardProps> = ({ round, onClueClick, answe
   return (
     <div className="jeopardy-board">
       <div className="board-header">
-        <h1>JEOPARDY!</h1>
+        <h1>{roundTypeLabel}</h1>
       </div>
       
       <div className="categories-row">
