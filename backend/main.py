@@ -65,6 +65,7 @@ Correct answer: \"{correct_answer}\"
 
 Consider synonyms, paraphrasing, common variations, and acceptable alternative answers.
 Do not be concerned with capitalization or use of articles like \"the\" or \"a\" in the correct answer.
+Consider slight misspellings if it results in a valid answer.
 Respond with ONLY a JSON object in this exact format:
 {{
     "is_correct": true/false,
@@ -120,6 +121,9 @@ class OpenAIValidator(LLMValidator):
             f"Question: (not provided)\n"
             f"Correct Answer: {correct_answer}\n"
             f"User's Answer: {user_answer}\n"
+            "Consider synonyms, paraphrasing, common variations, and acceptable alternative answers.\n"
+            "Do not be concerned with capitalization or use of articles like \"the\" or \"a\" in the correct answer.\n"
+            "Consider slight misspellings if it results in a valid answer.\n"
             "Respond ONLY with a JSON object in the following format:\n"
             '{"is_correct": true/false, "confidence": float, "explanation": string}\n'
             "The is_correct field MUST match your explanation."
