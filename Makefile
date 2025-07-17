@@ -43,6 +43,10 @@ ollama-setup:
 docker-up:
 	docker compose up --build
 
+.PHONY: docker-up-ollama
+docker-up-ollama:
+	docker compose --profile ollama up --build
+
 .PHONY: docker-down
 docker-down:
 	docker compose down

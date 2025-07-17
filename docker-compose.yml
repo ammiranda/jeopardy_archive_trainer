@@ -27,9 +27,10 @@ services:
       - ./backend:/app/backend
     environment:
       - PYTHONUNBUFFERED=1
+    env_file:
+      - .env
     depends_on:
       - loader
-      - ollama
     networks:
       - jeopardy-net
 
@@ -64,12 +65,13 @@ services:
 
   ollama:
     image: ollama/ollama:latest
+    profiles: ["ollama"]
     container_name: jeopardy-ollama
     ports:
       - "11434:11434"
     volumes:
       - ollama-data:/root/.ollama
-      - ./start-ollama.sh:/start-ollama.sh
+      - ./scripts:/app/scripts
     networks:
       - jeopardy-net
     environment:
@@ -83,9 +85,9 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '4'
-          memory: 6G
-    entrypoint: ["/start-ollama.sh"]
+          cpus: '6'
+          memory: 10G
+    entrypoint: ["./app/scripts/start-ollama.sh"]
 
 volumes:
   jeopardy-db:

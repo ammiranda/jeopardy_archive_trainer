@@ -9,6 +9,7 @@ import os
 import requests
 import json
 from pydantic import BaseModel
+import re
 
 app = FastAPI()
 
@@ -47,20 +48,23 @@ def normalize_round_type(s: str) -> str:
         return "finaljeopardy"
     return "jeopardy"
 
-async def validate_with_llm(user_answer: str, correct_answer: str) -> AnswerValidationResponse:
-    """
-    Use Ollama to validate if the user's answer matches the correct answer.
-    """
-    try:
-        # Prepare the prompt for the LLM
+class LLMValidator:
+    def validate(self, user_answer: str, correct_answer: str):
+        raise NotImplementedError
+
+class OllamaValidator(LLMValidator):
+    def __init__(self, ollama_url):
+        self.ollama_url = ollama_url
+
+    async def validate(self, user_answer: str, correct_answer: str):
         prompt = f"""
 You are a Jeopardy answer validator. Determine if the user's answer is equivalent to the correct answer.
 
-User's answer: "{user_answer}"
-Correct answer: "{correct_answer}"
+User's answer: \"{user_answer}\"
+Correct answer: \"{correct_answer}\"
 
 Consider synonyms, paraphrasing, common variations, and acceptable alternative answers.
-Do not be concerned with capitalization or use of articles like "the" or "a" in the correct answer.
+Do not be concerned with capitalization or use of articles like \"the\" or \"a\" in the correct answer.
 Respond with ONLY a JSON object in this exact format:
 {{
     "is_correct": true/false,
@@ -68,65 +72,93 @@ Respond with ONLY a JSON object in this exact format:
     "explanation": "brief explanation of your reasoning"
 }}
 
+The is_correct field should be true if the user's answer is equivalent to the correct answer, and false otherwise.
+Also the is_correct field should correlate with the explanation field so if the explanation is explaining why
+something is not correct, the is_correct field should be false.
+
 Examples:
 - "George Washington" vs "Washington" → is_correct: true
 - "Mars" vs "The Red Planet" → is_correct: true  
 - "Paris" vs "London" → is_correct: false
 """
-
-        # Call Ollama API
-        ollama_url = "http://ollama:11434/api/generate"
-        payload = {
-            "model": "qwen2.5:0.5b",  # or any other model you have installed
-            "prompt": prompt,
-            "stream": False
-        }
-
-        response = requests.post(ollama_url, json=payload, timeout=30)
-        response.raise_for_status()
-        
-        result = response.json()
-        llm_response = result.get('response', '').strip()
-        
-        # Try to parse JSON from LLM response
         try:
-            # Extract JSON from the response (in case there's extra text)
+            payload = {
+                "model": "llama3.2:3b",
+                "prompt": prompt,
+                "stream": False
+            }
+            response = requests.post(self.ollama_url, json=payload, timeout=30)
+            response.raise_for_status()
+            result = response.json()
+            llm_response = result.get('response', '').strip()
             start_idx = llm_response.find('{')
             end_idx = llm_response.rfind('}') + 1
             if start_idx != -1 and end_idx > start_idx:
                 json_str = llm_response[start_idx:end_idx]
                 parsed = json.loads(json_str)
-                
                 return AnswerValidationResponse(
                     is_correct=parsed.get('is_correct', False),
                     confidence=float(parsed.get('confidence', 0.0)),
                     explanation=parsed.get('explanation', 'LLM validation failed')
                 )
-        except (json.JSONDecodeError, KeyError, ValueError) as e:
-            # Fallback to simple string comparison if LLM fails
+        except Exception as e:
             is_correct = user_answer.strip().lower() == correct_answer.strip().lower()
             return AnswerValidationResponse(
                 is_correct=is_correct,
                 confidence=1.0 if is_correct else 0.0,
-                explanation=f"LLM parsing failed, using string comparison. LLM response: {llm_response[:100]}..."
+                explanation=f"Ollama not available or LLM parsing failed ({str(e)}), using string comparison"
             )
-            
-    except requests.RequestException as e:
-        # Fallback to simple string comparison if Ollama is not available
-        is_correct = user_answer.strip().lower() == correct_answer.strip().lower()
-        return AnswerValidationResponse(
-            is_correct=is_correct,
-            confidence=1.0 if is_correct else 0.0,
-            explanation=f"Ollama not available ({str(e)}), using string comparison"
+
+class OpenAIValidator(LLMValidator):
+    def __init__(self, api_key):
+        import openai
+        self.client = openai.OpenAI(api_key=api_key)
+
+    async def validate(self, user_answer: str, correct_answer: str):
+        prompt = (
+            f"You are a Jeopardy answer checker. "
+            f"Question: (not provided)\n"
+            f"Correct Answer: {correct_answer}\n"
+            f"User's Answer: {user_answer}\n"
+            "Respond ONLY with a JSON object in the following format:\n"
+            '{"is_correct": true/false, "confidence": float, "explanation": string}\n'
+            "The is_correct field MUST match your explanation."
         )
-    except Exception as e:
-        # Final fallback for any unexpected errors
-        is_correct = user_answer.strip().lower() == correct_answer.strip().lower()
-        return AnswerValidationResponse(
-            is_correct=is_correct,
-            confidence=1.0 if is_correct else 0.0,
-            explanation=f"Unexpected error ({str(e)}), using string comparison"
-        )
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.0,
+                max_tokens=256,
+            )
+            content = response.choices[0].message.content
+            import re, json
+            match = re.search(r'\{.*\}', content, re.DOTALL)
+            if match:
+                parsed = json.loads(match.group(0))
+                return AnswerValidationResponse(
+                    is_correct=parsed.get('is_correct', False),
+                    confidence=float(parsed.get('confidence', 0.0)),
+                    explanation=parsed.get('explanation', 'LLM validation failed')
+                )
+        except Exception as e:
+            is_correct = user_answer.strip().lower() == correct_answer.strip().lower()
+            return AnswerValidationResponse(
+                is_correct=is_correct,
+                confidence=1.0 if is_correct else 0.0,
+                explanation=f"OpenAI not available or LLM parsing failed ({str(e)}), using string comparison"
+            )
+
+# Provider selection
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if OPENAI_API_KEY:
+    validator = OpenAIValidator(api_key=OPENAI_API_KEY)
+else:
+    OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434/api/generate")
+    if OLLAMA_URL:
+        validator = OllamaValidator(ollama_url=OLLAMA_URL)
+    else:
+        raise ValueError("No LLM provider available: set OPENAI_API_KEY or OLLAMA_URL in the environment.")
 
 @app.get("/")
 def read_root():
@@ -135,9 +167,9 @@ def read_root():
 @app.post("/validate-answer", response_model=AnswerValidationResponse)
 async def validate_answer(request: AnswerValidationRequest):
     """
-    Validate a user's answer against the correct answer using LLM.
+    Validate a user's answer against the correct answer using the selected LLM provider.
     """
-    return await validate_with_llm(request.user_answer, request.correct_answer)
+    return await validator.validate(request.user_answer, request.correct_answer)
 
 @app.post("/rounds/generate", response_model=Round)
 def generate_round(round_type: RoundType = Query(RoundType.jeopardy, alias="round_type")):
