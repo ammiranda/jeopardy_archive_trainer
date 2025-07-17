@@ -1,40 +1,56 @@
-# Jeopardy Archive MCP (Model Context Protocol)
+# Jeopardy Archive Trainer
 
 A FastAPI backend and React frontend for generating Jeopardy rounds from past questions and categories, with LLM-powered answer validation.
 
-## Setup (Docker Compose)
+## Running Locally with Docker Compose
 
-### Production (Static Build)
+### Prerequisites
+- [Docker](https://www.docker.com/get-started) and [Docker Compose](https://docs.docker.com/compose/) installed
+- Kaggle API credentials (see below)
+- (Optional) Ollama model will be pulled automatically, but requires internet access
 
-1. **Build and start all services:**
-   ```bash
-   docker compose up --build
-   ```
-   - Frontend: [http://localhost:5173](http://localhost:5173)
-   - Backend: [http://localhost:8000](http://localhost:8000)
-   - Ollama: [http://localhost:11434](http://localhost:11434)
+### 1. Setup Environment Variables
 
-2. **Stop all services:**
-   ```bash
-   docker compose down
-   ```
+Create a `.env` file in the project root (you can copy `.env.example`):
 
-### Development (Vite Dev Server)
+```
+KAGGLE_USERNAME=your_kaggle_username
+KAGGLE_KEY=your_kaggle_key
+JEOPARDY_DATASET_ID=alexandermiranda/jeopardy-dataset
+```
 
-1. **Build and start with hot reload:**
-   ```bash
-   docker compose --profile dev up --build
-   ```
-   - Frontend (Vite): [http://localhost:5173](http://localhost:5173)
+### 2. Build and Start All Services
 
-2. **Stop all services:**
-   ```bash
-   docker compose down
-   ```
+For production (static frontend build):
+```bash
+make docker-up
+```
+- Frontend: [http://localhost:5173](http://localhost:5173)
+- Backend: [http://localhost:8000](http://localhost:8000)
+- Ollama (LLM): [http://localhost:11434](http://localhost:11434)
+
+For development (hot reload, Vite dev server):
+```bash
+make docker-dev
+```
+- Frontend (Vite): [http://localhost:5173](http://localhost:5173)
+
+### 3. Stopping Services
+```bash
+make docker-down
+```
+
+### 4. Troubleshooting
+- **Ollama model not found:** The Ollama service will automatically pull the model specified in `OLLAMA_MODELS` (default: `llama3`). If you see errors, check Ollama logs: `docker compose logs ollama`.
+- **Kaggle credentials error:** Ensure your `.env` file is present and correct. The loader service will fail if credentials or dataset ID are missing.
+- **Database not loading:** The loader service runs automatically to populate the SQLite database. Check its logs for errors.
+- **Backend can't reach Ollama:** The backend is configured to use the `ollama` service hostname. If you see connection errors, ensure both services are up and healthy.
+
+---
 
 ## LLM Integration (Ollama)
 
-Ollama is automatically started as a service in Docker Compose. The backend will use it for answer validation.
+Ollama is started as a service in Docker Compose. The backend uses it for answer validation. The model is pulled automatically on first run.
 
 ## Local (Non-Docker) Setup
 
@@ -65,6 +81,7 @@ Before running the loader script, you must create a `.env` file in the project r
 ```
 KAGGLE_USERNAME=your_kaggle_username
 KAGGLE_KEY=your_kaggle_key
+JEOPARDY_DATASET_ID=alexandermiranda/jeopardy-dataset
 ```
 
 You can use the provided `.env.example` as a template.
