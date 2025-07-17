@@ -1,0 +1,301 @@
+{
+  "id": "ea9197d4-c483-4062-b7bd-94749d0f1b3d",
+  "categories": [
+    {
+      "id": "878d8134-872f-5439-949b-80c67a09a680",
+      "name": "FILL IN THE SONG TITLE"
+    },
+    {
+      "id": "4493caab-70ab-52f0-b5cc-7826cdefcea7",
+      "name": "\"RAP\" SHEET"
+    },
+    {
+      "id": "4364dd54-24cd-5fae-a0b3-32cf806b3ca3",
+      "name": "EUROPEAN RIVERS"
+    },
+    {
+      "id": "d69f837a-fbc7-5625-a339-3ecf328d3ea1",
+      "name": "WHO'S THE BOSS?"
+    },
+    {
+      "id": "d410697f-4edb-5ba2-8366-8931191f67dd",
+      "name": "LUCY"
+    },
+    {
+      "id": "45feb8e8-ea30-5b30-af93-234c932cd6ad",
+      "name": "WOMEN ON TELEVISION"
+    }
+  ],
+  "clues": [
+    {
+      "id": "f8b06313-6ab5-52fc-a30a-70b0b781cda9",
+      "category_id": "878d8134-872f-5439-949b-80c67a09a680",
+      "question": "The Fray: \"H.T.S.A.L.\"",
+      "answer": "\"How To Save A Life\"",
+      "value": 1000,
+      "round": "jeopardy",
+      "air_date": "2011-05-30"
+    },
+    {
+      "id": "828cab05-2e42-5eb9-ba46-260956f8c961",
+      "category_id": "878d8134-872f-5439-949b-80c67a09a680",
+      "question": "Whitney Houston: \"____ Dollar Bill\"",
+      "answer": "Million",
+      "value": 1000,
+      "round": "jeopardy",
+      "air_date": "2010-02-05"
+    },
+    {
+      "id": "354d2980-f3ba-5e02-a1a1-ee4476b3b976",
+      "category_id": "878d8134-872f-5439-949b-80c67a09a680",
+      "question": "Carrie Underwood & her Louisville Slugger: \"B.H.C.\"",
+      "answer": "\"Before He Cheats\"",
+      "value": 800,
+      "round": "jeopardy",
+      "air_date": "2011-05-30"
+    },
+    {
+      "id": "6ef1e99e-ac57-5735-9e20-2cfbbcf78300",
+      "category_id": "878d8134-872f-5439-949b-80c67a09a680",
+      "question": "Tim McGraw: \"It's A Business Doing ____ ____ ____\"",
+      "answer": "Pleasure With You",
+      "value": 800,
+      "round": "jeopardy",
+      "air_date": "2010-02-05"
+    },
+    {
+      "id": "410beb38-ae36-59bd-b4f2-ab6e210c8cff",
+      "category_id": "878d8134-872f-5439-949b-80c67a09a680",
+      "question": "Cheap Trick: \" I.W.Y.T.W.M.\"",
+      "answer": "\"I Want You To Want Me\"",
+      "value": 600,
+      "round": "jeopardy",
+      "air_date": "2011-05-30"
+    },
+    {
+      "id": "6a115010-f27b-5ce6-a10b-dfd340499297",
+      "category_id": "4493caab-70ab-52f0-b5cc-7826cdefcea7",
+      "question": "This archaic term for a mischievous or annoying child can also mean a rogue or scamp",
+      "answer": "a rapscallion",
+      "value": 1000,
+      "round": "jeopardy",
+      "air_date": "2006-03-24"
+    },
+    {
+      "id": "64c6376a-da75-5c6a-bdac-b0a9d737c497",
+      "category_id": "4493caab-70ab-52f0-b5cc-7826cdefcea7",
+      "question": "\"I'm Not\" this guy in a Tony Award-winning play from 1986",
+      "answer": "Rappaport",
+      "value": 800,
+      "round": "jeopardy",
+      "air_date": "2006-03-24"
+    },
+    {
+      "id": "d289e46f-8c04-5077-a524-422f6c689561",
+      "category_id": "4493caab-70ab-52f0-b5cc-7826cdefcea7",
+      "question": "Toronto pro team",
+      "answer": "the Raptors",
+      "value": 600,
+      "round": "jeopardy",
+      "air_date": "2006-03-24"
+    },
+    {
+      "id": "ca28ba21-e994-5b6f-bdba-1d9c38c091b1",
+      "category_id": "4493caab-70ab-52f0-b5cc-7826cdefcea7",
+      "question": "A natural, friendly liking for someone based on mutual trust",
+      "answer": "rapport",
+      "value": 400,
+      "round": "jeopardy",
+      "air_date": "2006-03-24"
+    },
+    {
+      "id": "47ed923d-0129-5b2c-8479-0abfaed9e13a",
+      "category_id": "4493caab-70ab-52f0-b5cc-7826cdefcea7",
+      "question": "In city names, they can be Grand or Cedar",
+      "answer": "Rapids",
+      "value": 200,
+      "round": "jeopardy",
+      "air_date": "2006-03-24"
+    },
+    {
+      "id": "b9277914-d23f-52f2-92be-c4686cd2ce4e",
+      "category_id": "4364dd54-24cd-5fae-a0b3-32cf806b3ca3",
+      "question": "This country's longest river, the Gudena, winds 98 miles through the Jutland Peninsula",
+      "answer": "Denmark",
+      "value": 500,
+      "round": "jeopardy",
+      "air_date": "2000-06-23"
+    },
+    {
+      "id": "07403ce7-1896-54ca-95f5-1512c385bf7f",
+      "category_id": "4364dd54-24cd-5fae-a0b3-32cf806b3ca3",
+      "question": "The ancient Romans believed it was a shield protecting Gaul from the wild German tribes",
+      "answer": "Rhine",
+      "value": 500,
+      "round": "jeopardy",
+      "air_date": "1998-03-06"
+    },
+    {
+      "id": "5f7d09e0-385c-560b-a850-10a1e322cf22",
+      "category_id": "4364dd54-24cd-5fae-a0b3-32cf806b3ca3",
+      "question": "In 1937 this Russian river's first hydroelectric project was completed at Ivankovo",
+      "answer": "Volga",
+      "value": 400,
+      "round": "jeopardy",
+      "air_date": "2000-06-23"
+    },
+    {
+      "id": "1bf56f76-96e6-5599-b6a5-3a74a06a70e6",
+      "category_id": "4364dd54-24cd-5fae-a0b3-32cf806b3ca3",
+      "question": "The famed boatmen of this Russian river once pulled their barges from the river's banks",
+      "answer": "Volga",
+      "value": 400,
+      "round": "jeopardy",
+      "air_date": "1998-03-06"
+    },
+    {
+      "id": "5ae056b1-b3dc-50cc-9047-df02fb0164a5",
+      "category_id": "4364dd54-24cd-5fae-a0b3-32cf806b3ca3",
+      "question": "In 1992 Slovaks altered this river's course on the border of Slovakia & Hungary to improve navigation",
+      "answer": "Danube",
+      "value": 300,
+      "round": "jeopardy",
+      "air_date": "2000-06-23"
+    },
+    {
+      "id": "cf32f641-b4fa-50c6-b4a5-e187bfcf19eb",
+      "category_id": "d69f837a-fbc7-5625-a339-3ecf328d3ea1",
+      "question": "...of Hitler's Afrika Korps, 1941-1943",
+      "answer": "Rommel",
+      "value": 1000,
+      "round": "jeopardy",
+      "air_date": "2011-03-09"
+    },
+    {
+      "id": "770a4dc0-f828-51fe-bd79-7bdfd821297c",
+      "category_id": "d69f837a-fbc7-5625-a339-3ecf328d3ea1",
+      "question": "...of the Cuban Council of State, since February 2008",
+      "answer": "Raúl Castro",
+      "value": 800,
+      "round": "jeopardy",
+      "air_date": "2011-03-09"
+    },
+    {
+      "id": "07f9c714-8bd2-5173-a396-860bcbaa26c4",
+      "category_id": "d69f837a-fbc7-5625-a339-3ecf328d3ea1",
+      "question": "...of Motown Records, 1959-1988",
+      "answer": "Berry Gordy",
+      "value": 600,
+      "round": "jeopardy",
+      "air_date": "2011-03-09"
+    },
+    {
+      "id": "270a848e-7b63-5cdd-998e-1e1159558d95",
+      "category_id": "d69f837a-fbc7-5625-a339-3ecf328d3ea1",
+      "question": "...of the Federal Reserve System, 1987-2006",
+      "answer": "Alan Greenspan",
+      "value": 400,
+      "round": "jeopardy",
+      "air_date": "2011-03-09"
+    },
+    {
+      "id": "f101f689-b0e7-5144-b392-c779316134f8",
+      "category_id": "d69f837a-fbc7-5625-a339-3ecf328d3ea1",
+      "question": "...of Microsoft Corporation, 1975-2000",
+      "answer": "Bill Gates",
+      "value": 200,
+      "round": "jeopardy",
+      "air_date": "2011-03-09"
+    },
+    {
+      "id": "ce09ec6b-7315-5e87-bc02-45806f1cc38c",
+      "category_id": "d410697f-4edb-5ba2-8366-8931191f67dd",
+      "question": "Lucy Pevensie is a character in the books & movies set in this fictional land",
+      "answer": "Narnia",
+      "value": 1000,
+      "round": "jeopardy",
+      "air_date": "2011-10-06"
+    },
+    {
+      "id": "71eb9694-0c68-555b-ab12-1f8e3b0e3c1b",
+      "category_id": "d410697f-4edb-5ba2-8366-8931191f67dd",
+      "question": "In \"Peanuts\" the great passion of Lucy Van Pelt is her unrequited love for this boy",
+      "answer": "Schroeder",
+      "value": 800,
+      "round": "jeopardy",
+      "air_date": "2011-10-06"
+    },
+    {
+      "id": "2693e6c9-c688-502a-bab3-6ebc1dea32f4",
+      "category_id": "d410697f-4edb-5ba2-8366-8931191f67dd",
+      "question": "This \"angelic\" actress supplied the voice of viper in \"Kung Fu Panda\"",
+      "answer": "Lucy Liu",
+      "value": 600,
+      "round": "jeopardy",
+      "air_date": "2011-10-06"
+    },
+    {
+      "id": "e95d1c98-8927-58d5-98b9-eeea79b482a2",
+      "category_id": "d410697f-4edb-5ba2-8366-8931191f67dd",
+      "question": "Drew Barrymore played the memory-impaired Lucy Whitmore in this romantic comedy with Adam Sandler",
+      "answer": "50 First Dates",
+      "value": 400,
+      "round": "jeopardy",
+      "air_date": "2011-10-06"
+    },
+    {
+      "id": "90280343-d9e2-5f18-85ae-bf29cb9b4ad3",
+      "category_id": "d410697f-4edb-5ba2-8366-8931191f67dd",
+      "question": "Lucy Lawless is best known for playing this warrior princess",
+      "answer": "Xena",
+      "value": 200,
+      "round": "jeopardy",
+      "air_date": "2011-10-06"
+    },
+    {
+      "id": "7c461401-9730-599f-abe7-e781c8d82f80",
+      "category_id": "45feb8e8-ea30-5b30-af93-234c932cd6ad",
+      "question": "The Borg Seven of Nine & Captain Kathryn Janeway are 2 of the women aboard this Federation starship",
+      "answer": "Voyager",
+      "value": 500,
+      "round": "jeopardy",
+      "air_date": "1998-04-20"
+    },
+    {
+      "id": "11298cd7-3eb8-51f0-9210-751cef3ef333",
+      "category_id": "45feb8e8-ea30-5b30-af93-234c932cd6ad",
+      "question": "Before replacing Farrah Fawcett on \"Charlie's Angels\", this actress sang on \"Josie and the Pussycats\"",
+      "answer": "Cheryl Ladd",
+      "value": 400,
+      "round": "jeopardy",
+      "air_date": "1998-04-20"
+    },
+    {
+      "id": "a93bd527-d6bb-5f28-b205-b9d759b977ed",
+      "category_id": "45feb8e8-ea30-5b30-af93-234c932cd6ad",
+      "question": "Caroline Rhea is this teenage witch's kooky Aunt Hilda",
+      "answer": "Sabrina",
+      "value": 300,
+      "round": "jeopardy",
+      "air_date": "1998-04-20"
+    },
+    {
+      "id": "1de37eab-dd7c-57a6-87eb-3f2e8211c15b",
+      "category_id": "45feb8e8-ea30-5b30-af93-234c932cd6ad",
+      "question": "Yvonne Zima is Anthony Edwards' daughter Rachel Greene on \"ER\"; this actress is Rachel Green on \"Friends\"",
+      "answer": "Jennifer Aniston",
+      "value": 200,
+      "round": "jeopardy",
+      "air_date": "1998-04-20"
+    },
+    {
+      "id": "c1dc7b06-5a5f-5038-9743-66d0916ef292",
+      "category_id": "45feb8e8-ea30-5b30-af93-234c932cd6ad",
+      "question": "Kristen Johnston's Sally Solomon is an alien posing as a leggy woman on this hit sitcom",
+      "answer": "3rd Rock from the Sun",
+      "value": 100,
+      "round": "jeopardy",
+      "air_date": "1998-04-20"
+    }
+  ]
+}

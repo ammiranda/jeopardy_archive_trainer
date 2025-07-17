@@ -1,0 +1,96 @@
+version: '3.9'
+
+services:
+  loader:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["python", "scripts/load_jeopardy_csv.py"]
+    volumes:
+      - jeopardy-db:/app/data
+      - ./backend:/app/backend
+      - ./scripts:/app/scripts
+    environment:
+      - PYTHONUNBUFFERED=1
+    env_file:
+      - .env
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: jeopardy-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - jeopardy-db:/app/data
+      - ./backend:/app/backend
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - loader
+      - ollama
+    networks:
+      - jeopardy-net
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - BUILD_MODE=static
+    container_name: jeopardy-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - jeopardy-net
+
+  frontend-dev:
+    build:
+      context: ./frontend
+      args:
+        - BUILD_MODE=dev
+    container_name: jeopardy-frontend-dev
+    command: ["npm", "run", "dev", "--", "--host"]
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - jeopardy-net
+    profiles:
+      - dev
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: jeopardy-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+      - ./start-ollama.sh:/start-ollama.sh
+    networks:
+      - jeopardy-net
+    environment:
+      - OLLAMA_URL=http://ollama:11434
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 6G
+    entrypoint: ["/start-ollama.sh"]
+
+volumes:
+  jeopardy-db:
+  ollama-data:
+
+networks:
+  jeopardy-net:
+    driver: bridge 

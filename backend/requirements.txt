@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pydantic 
+kagglehub 
+python-dotenv 
+ruff 
+pandas 
+requests 
