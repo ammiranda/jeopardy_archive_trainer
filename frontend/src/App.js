@@ -54,7 +54,7 @@ function App() {
                 setScore(prev => prev + points);
             }
             else {
-                setScore(prev => Math.max(0, prev - points));
+                setScore(prev => prev - points);
             }
         }
     };

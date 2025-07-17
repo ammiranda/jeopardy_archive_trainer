@@ -11,6 +11,7 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [score, setScore] = useState(0);
   const [answeredClues, setAnsweredClues] = useState<Set<string>>(new Set());
+  const [incorrectClues, setIncorrectClues] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [roundType, setRoundType] = useState<RoundType>('jeopardy');
@@ -28,6 +29,7 @@ function App() {
       const round = await apiService.generateRound(type);
       setCurrentRound(round);
       setAnsweredClues(new Set());
+      setIncorrectClues(new Set());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate round');
     } finally {
@@ -55,8 +57,14 @@ function App() {
       setAnsweredClues(prev => new Set([...prev, selectedClue.id]));
       if (isCorrect) {
         setScore(prev => prev + points);
+        setIncorrectClues(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(selectedClue.id);
+          return newSet;
+        });
       } else {
-        setScore(prev => Math.max(0, prev - points));
+        setScore(prev => prev - points);
+        setIncorrectClues(prev => new Set([...prev, selectedClue.id]));
       }
     }
   };
@@ -120,6 +128,7 @@ function App() {
           round={currentRound}
           onClueClick={handleClueClick}
           answeredClues={answeredClues}
+          incorrectClues={incorrectClues}
           roundTypeLabel={roundTypeLabels[roundType]}
         />
       )}

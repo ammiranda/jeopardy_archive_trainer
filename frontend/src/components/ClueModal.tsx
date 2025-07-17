@@ -37,7 +37,7 @@ const ClueModal: React.FC<ClueModalProps> = ({ clue, round, isOpen, onClose, onA
       if (result.isCorrect) {
         onAnswerSubmit(true, clue.value || 0);
       } else {
-        onAnswerSubmit(false, 0);
+        onAnswerSubmit(false, clue.value || 0);
       }
     } catch (error) {
       console.error('Error validating answer:', error);

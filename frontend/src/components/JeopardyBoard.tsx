@@ -6,10 +6,11 @@ interface JeopardyBoardProps {
   round: Round;
   onClueClick: (clue: Clue) => void;
   answeredClues: Set<string>;
+  incorrectClues: Set<string>;
   roundTypeLabel: string;
 }
 
-const JeopardyBoard: React.FC<JeopardyBoardProps> = ({ round, onClueClick, answeredClues, roundTypeLabel }) => {
+const JeopardyBoard: React.FC<JeopardyBoardProps> = ({ round, onClueClick, answeredClues, incorrectClues, roundTypeLabel }) => {
   const values = [200, 400, 600, 800, 1000];
   
   // Group clues by category
@@ -41,16 +42,17 @@ const JeopardyBoard: React.FC<JeopardyBoardProps> = ({ round, onClueClick, answe
             {cluesByCategory.map((categoryData, colIndex) => {
               const clue = categoryData.clues[rowIndex];
               const isAnswered = clue ? answeredClues.has(clue.id) : false;
+              const isIncorrect = clue ? incorrectClues.has(clue.id) : false;
               
               return (
                 <div key={`${categoryData.category.id}-${clue?.value}`} className="clue-cell">
                   {clue ? (
                     <button
-                      className={`clue-button ${isAnswered ? 'answered' : ''}`}
+                      className={`clue-button ${isAnswered ? 'answered' : ''} ${isIncorrect ? 'incorrect' : ''}`}
                       onClick={() => !isAnswered && onClueClick(clue)}
                       disabled={isAnswered}
                     >
-                      {isAnswered ? '✓' : `$${clue?.value}`}
+                      {isAnswered ? (isIncorrect ? '✗' : '✓') : `$${clue?.value}`}
                     </button>
                   ) : (
                     <div className="empty-clue">$0</div>

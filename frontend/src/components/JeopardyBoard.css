@@ -92,6 +92,11 @@
   font-size: 2rem;
 }
 
+.clue-button.incorrect {
+  background: linear-gradient(135deg, #dc2626, #ef4444) !important;
+  color: white !important;
+}
+
 .empty-clue {
   width: 100%;
   height: 100%;
