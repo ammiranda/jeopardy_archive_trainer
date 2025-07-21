@@ -109,7 +109,7 @@ Before running the loader script, you must create a `.env` file in the project r
 ```
 KAGGLE_USERNAME=your_kaggle_username
 KAGGLE_KEY=your_kaggle_key
-JEOPARDY_DATASET_ID=alexandermiranda/jeopardy-dataset
+JEOPARDY_DATASET_ID=tunguz/200000-jeopardy-questions # the actual dataset name on Kaggle that was used.
 ```
 
 You can use the provided `.env.example` as a template.
