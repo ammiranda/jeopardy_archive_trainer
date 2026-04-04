@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import JeopardyBoard from './components/JeopardyBoard';
 import ClueModal from './components/ClueModal';
+import FinalJeopardy from './components/FinalJeopardy';
 import Settings from './components/Settings';
 import { apiService } from './services/api';
 import type { Round, Clue, RoundType } from './types/game';
@@ -133,6 +134,23 @@ function App() {
         </div>
       </div>
       {currentRound && (
+        <JeopardyBoard
+          round={currentRound}
+          onClueClick={handleClueClick}
+          answeredClues={answeredClues}
+          incorrectClues={incorrectClues}
+          roundTypeLabel={roundTypeLabels[roundType]}
+        />
+      )}
+      {currentRound && roundType === 'finaljeopardy' && currentRound.clues.length > 0 && (
+        <FinalJeopardy
+          clue={currentRound.clues[0]}
+          round={currentRound}
+          onAnswerSubmit={handleAnswerSubmit}
+          onNewRound={handleNewGame}
+        />
+      )}
+      {currentRound && roundType !== 'finaljeopardy' && (
         <JeopardyBoard
           round={currentRound}
           onClueClick={handleClueClick}
