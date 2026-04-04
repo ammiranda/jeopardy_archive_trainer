@@ -118,9 +118,10 @@ Examples:
             )
 
 class OpenAIValidator(LLMValidator):
-    def __init__(self, api_key):
+    def __init__(self, api_key, model):
         import openai
         self.client = openai.OpenAI(api_key=api_key)
+        self.model = model
 
     async def validate(self, user_answer: str, correct_answer: str):
         prompt = (
@@ -137,7 +138,7 @@ class OpenAIValidator(LLMValidator):
         )
         try:
             response = self.client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model=self.model,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.0,
                 max_tokens=256,
@@ -292,7 +293,8 @@ elif OPENROUTER_API_KEY:
     model = os.getenv("OPENROUTER_MODEL", "openai/gpt-3.5-turbo")
     validator = OpenRouterValidator(api_key=OPENROUTER_API_KEY, model=model)
 elif OPENAI_API_KEY:
-    validator = OpenAIValidator(api_key=OPENAI_API_KEY)
+    model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
+    validator = OpenAIValidator(api_key=OPENAI_API_KEY, model=model)
 else:
     OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434/api/generate")
     if OLLAMA_URL:
