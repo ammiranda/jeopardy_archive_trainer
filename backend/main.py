@@ -10,6 +10,13 @@ import requests
 import json
 from pydantic import BaseModel
 import re
+try:
+    from sentence_transformers import SentenceTransformer
+    from sklearn.metrics.pairwise import cosine_similarity
+    import numpy as np
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
 
 app = FastAPI()
 
@@ -153,16 +160,145 @@ class OpenAIValidator(LLMValidator):
                 explanation=f"OpenAI not available or LLM parsing failed ({str(e)}), using string comparison"
             )
 
+class OpenRouterValidator(LLMValidator):
+    def __init__(self, api_key, model):
+        import openai
+        self.client = openai.OpenAI(
+            api_key=api_key,
+            base_url="https://openrouter.ai/api/v1",
+        )
+        self.model = model
+
+    async def validate(self, user_answer: str, correct_answer: str):
+        prompt = (
+            f"You are a Jeopardy answer checker. "
+            f"Question: (not provided)\n"
+            f"Correct Answer: {correct_answer}\n"
+            f"User's Answer: {user_answer}\n"
+            "Consider synonyms, paraphrasing, common variations, and acceptable alternative answers.\n"
+            "Do not be concerned with capitalization or use of articles like \"the\" or \"a\" in the correct answer.\n"
+            "Consider slight misspellings if it results in a valid answer.\n"
+            "Respond ONLY with a JSON object in the following format:\n"
+            '{"is_correct": true/false, "confidence": float, "explanation": string}\n'
+            "The is_correct field MUST match your explanation."
+        )
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.0,
+                max_tokens=256,
+            )
+            content = response.choices[0].message.content
+            import re, json
+            match = re.search(r'\{.*\}', content, re.DOTALL)
+            if match:
+                parsed = json.loads(match.group(0))
+                return AnswerValidationResponse(
+                    is_correct=parsed.get('is_correct', False),
+                    confidence=float(parsed.get('confidence', 0.0)),
+                    explanation=parsed.get('explanation', 'LLM validation failed')
+                )
+        except Exception as e:
+            is_correct = user_answer.strip().lower() == correct_answer.strip().lower()
+            return AnswerValidationResponse(
+                is_correct=is_correct,
+                confidence=1.0 if is_correct else 0.0,
+                explanation=f"OpenRouter not available or LLM parsing failed ({str(e)}), using string comparison"
+            )
+
+class SentenceTransformerValidator(LLMValidator):
+    def __init__(self, model_name: str = "all-MiniLM-L6-v2", similarity_threshold: float = 0.75):
+        if not SENTENCE_TRANSFORMERS_AVAILABLE:
+            raise ImportError("sentence-transformers, torch, and scikit-learn are required for SentenceTransformerValidator")
+        self.model = SentenceTransformer(model_name)
+        self.similarity_threshold = similarity_threshold
+
+    def _preprocess_answer(self, answer: str) -> str:
+        """Clean and normalize answers for better comparison"""
+        # Remove common prefixes/suffixes and articles
+        answer = answer.strip()
+        # Remove "What is", "Who is", etc.
+        answer = re.sub(r'^(what|who|where|when|how|why)\s+(is|are|was|were)\s+', '', answer, flags=re.IGNORECASE)
+        # Remove articles at the beginning
+        answer = re.sub(r'^(the|a|an)\s+', '', answer, flags=re.IGNORECASE)
+        # Remove extra whitespace
+        answer = ' '.join(answer.split())
+        return answer.lower()
+
+    async def validate(self, user_answer: str, correct_answer: str):
+        """
+        Validate answers using sentence transformer embeddings and cosine similarity
+        """
+        try:
+            # Preprocess both answers
+            user_clean = self._preprocess_answer(user_answer)
+            correct_clean = self._preprocess_answer(correct_answer)
+            
+            # Handle exact match case
+            if user_clean == correct_clean:
+                return AnswerValidationResponse(
+                    is_correct=True,
+                    confidence=1.0,
+                    explanation="Exact match after normalization"
+                )
+            
+            # Generate embeddings
+            embeddings = self.model.encode([user_clean, correct_clean])
+            user_embedding = embeddings[0].reshape(1, -1)
+            correct_embedding = embeddings[1].reshape(1, -1)
+            
+            # Calculate cosine similarity
+            similarity = cosine_similarity(user_embedding, correct_embedding)[0][0]
+            
+            # Determine if correct based on similarity threshold
+            is_correct = similarity >= self.similarity_threshold
+            
+            # Create explanation based on similarity score
+            if similarity >= 0.9:
+                explanation = f"Very high semantic similarity ({similarity:.3f})"
+            elif similarity >= self.similarity_threshold:
+                explanation = f"High semantic similarity ({similarity:.3f}), above threshold"
+            elif similarity >= 0.5:
+                explanation = f"Moderate semantic similarity ({similarity:.3f}), below threshold"
+            else:
+                explanation = f"Low semantic similarity ({similarity:.3f})"
+            
+            return AnswerValidationResponse(
+                is_correct=is_correct,
+                confidence=float(similarity),
+                explanation=explanation
+            )
+            
+        except Exception as e:
+            # Fallback to string comparison
+            is_correct = user_answer.strip().lower() == correct_answer.strip().lower()
+            return AnswerValidationResponse(
+                is_correct=is_correct,
+                confidence=1.0 if is_correct else 0.0,
+                explanation=f"Sentence transformer validation failed ({str(e)}), using string comparison"
+            )
+
 # Provider selection
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if OPENAI_API_KEY:
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+USE_SENTENCE_TRANSFORMERS = os.getenv("USE_SENTENCE_TRANSFORMERS", "false").lower() == "true"
+
+if USE_SENTENCE_TRANSFORMERS and SENTENCE_TRANSFORMERS_AVAILABLE:
+    model_name = os.getenv("SENTENCE_TRANSFORMER_MODEL", "all-MiniLM-L6-v2")
+    threshold = float(os.getenv("SENTENCE_TRANSFORMER_THRESHOLD", "0.75"))
+    validator = SentenceTransformerValidator(model_name=model_name, similarity_threshold=threshold)
+elif OPENROUTER_API_KEY:
+    model = os.getenv("OPENROUTER_MODEL", "openai/gpt-3.5-turbo")
+    validator = OpenRouterValidator(api_key=OPENROUTER_API_KEY, model=model)
+elif OPENAI_API_KEY:
     validator = OpenAIValidator(api_key=OPENAI_API_KEY)
 else:
     OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434/api/generate")
     if OLLAMA_URL:
         validator = OllamaValidator(ollama_url=OLLAMA_URL)
     else:
-        raise ValueError("No LLM provider available: set OPENAI_API_KEY or OLLAMA_URL in the environment.")
+        raise ValueError("No LLM provider available: set OPENROUTER_API_KEY, OPENAI_API_KEY, OLLAMA_URL, or USE_SENTENCE_TRANSFORMERS=true in the environment.")
 
 @app.get("/")
 def read_root():
