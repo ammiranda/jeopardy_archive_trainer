@@ -8,6 +8,12 @@ class RoundType(str, Enum):
     double_jeopardy = "doublejeopardy"
     final_jeopardy = "finaljeopardy"
 
+class LLMProvider(str, Enum):
+    sentence_transformer = "sentence_transformer"
+    openrouter = "openrouter"
+    openai = "openai"
+    ollama = "ollama"
+
 class Category(BaseModel):
     id: UUID
     name: str
@@ -24,7 +30,7 @@ class Clue(BaseModel):
 class Round(BaseModel):
     id: UUID
     categories: List[Category]
-    clues: List[Clue]  # grouped by category in logic, flat here for simplicity 
+    clues: List[Clue]
 
 class AnswerValidationRequest(BaseModel):
     user_answer: str
@@ -34,3 +40,14 @@ class AnswerValidationResponse(BaseModel):
     is_correct: bool
     confidence: float
     explanation: str
+
+class LLMConfig(BaseModel):
+    provider: LLMProvider
+    model: Optional[str] = None
+    similarity_threshold: Optional[float] = 0.75
+
+class LLMConfigResponse(BaseModel):
+    provider: LLMProvider
+    model: Optional[str] = None
+    similarity_threshold: Optional[float] = 0.75
+    available_providers: List[str]

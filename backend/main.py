@@ -1,8 +1,12 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from .models import Category, Clue, Round, RoundType, AnswerValidationRequest, AnswerValidationResponse
+from .models import (
+    Category, Clue, Round, RoundType, 
+    AnswerValidationRequest, AnswerValidationResponse,
+    LLMProvider, LLMConfig, LLMConfigResponse
+)
 from uuid import uuid5, NAMESPACE_OID, UUID, uuid4
-from typing import List
+from typing import List, Optional
 import sqlite3
 import random
 import os
@@ -12,6 +16,7 @@ from pydantic import BaseModel
 import re
 import time
 import logging
+import threading
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -63,6 +68,127 @@ def normalize_round_type(s: str) -> str:
 class LLMValidator:
     def validate(self, user_answer: str, correct_answer: str):
         raise NotImplementedError
+
+class ValidatorManager:
+    _instance = None
+    _lock = threading.Lock()
+
+    def __init__(self):
+        self._validator: Optional[LLMValidator] = None
+        self._current_provider: Optional[LLMProvider] = None
+        self._openai_api_key = os.getenv("OPENAI_API_KEY")
+        self._openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
+        self._ollama_url = os.getenv("OLLAMA_URL", "http://ollama:11434/api/generate")
+        self._openai_model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
+        self._openrouter_model = os.getenv("OPENROUTER_MODEL", "openai/gpt-3.5-turbo")
+        self._sentence_transformer_model = os.getenv("SENTENCE_TRANSFORMER_MODEL", "all-MiniLM-L6-v2")
+        self._sentence_transformer_threshold = float(os.getenv("SENTENCE_TRANSFORMER_THRESHOLD", "0.75"))
+        self._initialize_validator()
+
+    @classmethod
+    def get_instance(cls) -> "ValidatorManager":
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = cls()
+        return cls._instance
+
+    def _initialize_validator(self):
+        if SENTENCE_TRANSFORMERS_AVAILABLE and os.getenv("USE_SENTENCE_TRANSFORMERS", "false").lower() == "true":
+            self._validator = SentenceTransformerValidator(
+                model_name=self._sentence_transformer_model,
+                similarity_threshold=self._sentence_transformer_threshold
+            )
+            self._current_provider = LLMProvider.sentence_transformer
+        elif self._openrouter_api_key:
+            self._validator = OpenRouterValidator(
+                api_key=self._openrouter_api_key,
+                model=self._openrouter_model
+            )
+            self._current_provider = LLMProvider.openrouter
+        elif self._openai_api_key:
+            self._validator = OpenAIValidator(
+                api_key=self._openai_api_key,
+                model=self._openai_model
+            )
+            self._current_provider = LLMProvider.openai
+        elif self._ollama_url:
+            self._validator = OllamaValidator(ollama_url=self._ollama_url)
+            self._current_provider = LLMProvider.ollama
+        else:
+            raise ValueError("No LLM provider available")
+
+    def get_config(self) -> LLMConfigResponse:
+        available = []
+        if SENTENCE_TRANSFORMERS_AVAILABLE:
+            available.append(LLMProvider.sentence_transformer.value)
+        if self._openrouter_api_key:
+            available.append(LLMProvider.openrouter.value)
+        if self._openai_api_key:
+            available.append(LLMProvider.openai.value)
+        if self._ollama_url:
+            available.append(LLMProvider.ollama.value)
+
+        return LLMConfigResponse(
+            provider=self._current_provider,
+            model=self._get_current_model(),
+            similarity_threshold=self._sentence_transformer_threshold,
+            available_providers=available
+        )
+
+    def _get_current_model(self) -> Optional[str]:
+        if self._current_provider == LLMProvider.openrouter:
+            return self._openrouter_model
+        elif self._current_provider == LLMProvider.openai:
+            return self._openai_model
+        elif self._current_provider == LLMProvider.sentence_transformer:
+            return self._sentence_transformer_model
+        return None
+
+    def update_config(self, config: LLMConfig) -> LLMConfigResponse:
+        provider = config.provider
+
+        if provider == LLMProvider.sentence_transformer:
+            if not SENTENCE_TRANSFORMERS_AVAILABLE:
+                raise ValueError("Sentence transformers not available")
+            self._validator = SentenceTransformerValidator(
+                model_name=config.model or self._sentence_transformer_model,
+                similarity_threshold=config.similarity_threshold or 0.75
+            )
+            if config.model:
+                self._sentence_transformer_model = config.model
+            if config.similarity_threshold:
+                self._sentence_transformer_threshold = config.similarity_threshold
+
+        elif provider == LLMProvider.openrouter:
+            if not self._openrouter_api_key:
+                raise ValueError("OpenRouter API key not configured")
+            self._validator = OpenRouterValidator(
+                api_key=self._openrouter_api_key,
+                model=config.model or self._openrouter_model
+            )
+            if config.model:
+                self._openrouter_model = config.model
+
+        elif provider == LLMProvider.openai:
+            if not self._openai_api_key:
+                raise ValueError("OpenAI API key not configured")
+            self._validator = OpenAIValidator(
+                api_key=self._openai_api_key,
+                model=config.model or self._openai_model
+            )
+            if config.model:
+                self._openai_model = config.model
+
+        elif provider == LLMProvider.ollama:
+            self._validator = OllamaValidator(ollama_url=self._ollama_url)
+
+        self._current_provider = provider
+        logger.info(f"[ValidatorManager] Switched to provider={provider.value} model={config.model}")
+        return self.get_config()
+
+    async def validate(self, user_answer: str, correct_answer: str) -> AnswerValidationResponse:
+        return await self._validator.validate(user_answer, correct_answer)
 
 class OllamaValidator(LLMValidator):
     def __init__(self, ollama_url):
@@ -299,38 +425,35 @@ class SentenceTransformerValidator(LLMValidator):
                 explanation=f"Sentence transformer validation failed ({str(e)}), using string comparison"
             )
 
-# Provider selection
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-USE_SENTENCE_TRANSFORMERS = os.getenv("USE_SENTENCE_TRANSFORMERS", "false").lower() == "true"
-
-if USE_SENTENCE_TRANSFORMERS and SENTENCE_TRANSFORMERS_AVAILABLE:
-    model_name = os.getenv("SENTENCE_TRANSFORMER_MODEL", "all-MiniLM-L6-v2")
-    threshold = float(os.getenv("SENTENCE_TRANSFORMER_THRESHOLD", "0.75"))
-    validator = SentenceTransformerValidator(model_name=model_name, similarity_threshold=threshold)
-elif OPENROUTER_API_KEY:
-    model = os.getenv("OPENROUTER_MODEL", "openai/gpt-3.5-turbo")
-    validator = OpenRouterValidator(api_key=OPENROUTER_API_KEY, model=model)
-elif OPENAI_API_KEY:
-    model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
-    validator = OpenAIValidator(api_key=OPENAI_API_KEY, model=model)
-else:
-    OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434/api/generate")
-    if OLLAMA_URL:
-        validator = OllamaValidator(ollama_url=OLLAMA_URL)
-    else:
-        raise ValueError("No LLM provider available: set OPENROUTER_API_KEY, OPENAI_API_KEY, OLLAMA_URL, or USE_SENTENCE_TRANSFORMERS=true in the environment.")
+validator_manager = ValidatorManager.get_instance()
 
 @app.get("/")
 def read_root():
     return {"message": "Jeopardy Archive MCP API"}
+
+@app.get("/config/llm", response_model=LLMConfigResponse)
+def get_llm_config():
+    """
+    Get current LLM configuration including the active provider and available options.
+    """
+    return validator_manager.get_config()
+
+@app.put("/config/llm", response_model=LLMConfigResponse)
+def update_llm_config(config: LLMConfig):
+    """
+    Update the LLM configuration to switch providers or change model settings.
+    """
+    try:
+        return validator_manager.update_config(config)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/validate-answer", response_model=AnswerValidationResponse)
 async def validate_answer(request: AnswerValidationRequest):
     """
     Validate a user's answer against the correct answer using the selected LLM provider.
     """
-    return await validator.validate(request.user_answer, request.correct_answer)
+    return await validator_manager.validate(request.user_answer, request.correct_answer)
 
 @app.post("/rounds/generate", response_model=Round)
 def generate_round(round_type: RoundType = Query(RoundType.jeopardy, alias="round_type")):

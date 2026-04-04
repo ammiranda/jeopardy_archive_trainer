@@ -30,4 +30,16 @@ export interface GameState {
   answeredClues: Set<string>;
 }
 
-export type RoundType = 'jeopardy' | 'doublejeopardy' | 'finaljeopardy'; 
+export type RoundType = 'jeopardy' | 'doublejeopardy' | 'finaljeopardy';
+
+export type LLMProvider = 'sentence_transformer' | 'openrouter' | 'openai' | 'ollama';
+
+export interface LLMConfig {
+  provider: LLMProvider;
+  model?: string;
+  similarity_threshold?: number;
+}
+
+export interface LLMConfigResponse extends LLMConfig {
+  available_providers: string[];
+} 

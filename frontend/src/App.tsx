@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import JeopardyBoard from './components/JeopardyBoard';
 import ClueModal from './components/ClueModal';
+import Settings from './components/Settings';
 import { apiService } from './services/api';
 import type { Round, Clue, RoundType } from './types/game';
 import './App.css';
@@ -9,6 +10,7 @@ function App() {
   const [currentRound, setCurrentRound] = useState<Round | null>(null);
   const [selectedClue, setSelectedClue] = useState<Clue | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [score, setScore] = useState(0);
   const [answeredClues, setAnsweredClues] = useState<Set<string>>(new Set());
   const [incorrectClues, setIncorrectClues] = useState<Set<string>>(new Set());
@@ -121,6 +123,13 @@ function App() {
           <button onClick={handleNewGame} className="new-game-button">
             New Game
           </button>
+          <button 
+            onClick={() => setIsSettingsOpen(true)} 
+            className="settings-button"
+            style={{ marginLeft: 12, padding: '6px 12px', borderRadius: 6 }}
+          >
+            Settings
+          </button>
         </div>
       </div>
       {currentRound && (
@@ -138,6 +147,10 @@ function App() {
         isOpen={isModalOpen}
         onClose={handleModalClose}
         onAnswerSubmit={handleAnswerSubmit}
+      />
+      <Settings 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
       />
     </div>
   );
