@@ -133,15 +133,6 @@ function App() {
           </button>
         </div>
       </div>
-      {currentRound && (
-        <JeopardyBoard
-          round={currentRound}
-          onClueClick={handleClueClick}
-          answeredClues={answeredClues}
-          incorrectClues={incorrectClues}
-          roundTypeLabel={roundTypeLabels[roundType]}
-        />
-      )}
       {currentRound && roundType === 'finaljeopardy' && currentRound.clues.length > 0 && (
         <FinalJeopardy
           clue={currentRound.clues[0]}
