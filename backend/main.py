@@ -10,6 +10,11 @@ import requests
 import json
 from pydantic import BaseModel
 import re
+import time
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 try:
     from sentence_transformers import SentenceTransformer
     from sklearn.metrics.pairwise import cosine_similarity
@@ -89,6 +94,7 @@ Examples:
 - "Mars" vs "The Red Planet" → is_correct: true  
 - "Paris" vs "London" → is_correct: false
 """
+        start_time = time.time()
         try:
             payload = {
                 "model": "llama3.2:3b",
@@ -96,6 +102,8 @@ Examples:
                 "stream": False
             }
             response = requests.post(self.ollama_url, json=payload, timeout=30)
+            elapsed = time.time() - start_time
+            logger.info(f"[Ollama] model=llama3.2:3b url={self.ollama_url} duration={elapsed:.3f}s")
             response.raise_for_status()
             result = response.json()
             llm_response = result.get('response', '').strip()
@@ -110,6 +118,8 @@ Examples:
                     explanation=parsed.get('explanation', 'LLM validation failed')
                 )
         except Exception as e:
+            elapsed = time.time() - start_time
+            logger.error(f"[Ollama] url={self.ollama_url} duration={elapsed:.3f}s error={str(e)}")
             is_correct = user_answer.strip().lower() == correct_answer.strip().lower()
             return AnswerValidationResponse(
                 is_correct=is_correct,
@@ -136,6 +146,7 @@ class OpenAIValidator(LLMValidator):
             '{"is_correct": true/false, "confidence": float, "explanation": string}\n'
             "The is_correct field MUST match your explanation."
         )
+        start_time = time.time()
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -143,6 +154,8 @@ class OpenAIValidator(LLMValidator):
                 temperature=0.0,
                 max_tokens=256,
             )
+            elapsed = time.time() - start_time
+            logger.info(f"[OpenAI] model={self.model} duration={elapsed:.3f}s")
             content = response.choices[0].message.content
             import re, json
             match = re.search(r'\{.*\}', content, re.DOTALL)
@@ -154,6 +167,8 @@ class OpenAIValidator(LLMValidator):
                     explanation=parsed.get('explanation', 'LLM validation failed')
                 )
         except Exception as e:
+            elapsed = time.time() - start_time
+            logger.error(f"[OpenAI] model={self.model} duration={elapsed:.3f}s error={str(e)}")
             is_correct = user_answer.strip().lower() == correct_answer.strip().lower()
             return AnswerValidationResponse(
                 is_correct=is_correct,
@@ -183,6 +198,7 @@ class OpenRouterValidator(LLMValidator):
             '{"is_correct": true/false, "confidence": float, "explanation": string}\n'
             "The is_correct field MUST match your explanation."
         )
+        start_time = time.time()
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -190,6 +206,8 @@ class OpenRouterValidator(LLMValidator):
                 temperature=0.0,
                 max_tokens=256,
             )
+            elapsed = time.time() - start_time
+            logger.info(f"[OpenRouter] model={self.model} duration={elapsed:.3f}s")
             content = response.choices[0].message.content
             import re, json
             match = re.search(r'\{.*\}', content, re.DOTALL)
@@ -201,6 +219,8 @@ class OpenRouterValidator(LLMValidator):
                     explanation=parsed.get('explanation', 'LLM validation failed')
                 )
         except Exception as e:
+            elapsed = time.time() - start_time
+            logger.error(f"[OpenRouter] model={self.model} duration={elapsed:.3f}s error={str(e)}")
             is_correct = user_answer.strip().lower() == correct_answer.strip().lower()
             return AnswerValidationResponse(
                 is_correct=is_correct,
@@ -231,31 +251,27 @@ class SentenceTransformerValidator(LLMValidator):
         """
         Validate answers using sentence transformer embeddings and cosine similarity
         """
+        start_time = time.time()
         try:
-            # Preprocess both answers
             user_clean = self._preprocess_answer(user_answer)
             correct_clean = self._preprocess_answer(correct_answer)
             
-            # Handle exact match case
             if user_clean == correct_clean:
+                elapsed = time.time() - start_time
+                logger.info(f"[SentenceTransformer] model={self.model.name} duration={elapsed:.6f}s (exact match)")
                 return AnswerValidationResponse(
                     is_correct=True,
                     confidence=1.0,
                     explanation="Exact match after normalization"
                 )
             
-            # Generate embeddings
             embeddings = self.model.encode([user_clean, correct_clean])
             user_embedding = embeddings[0].reshape(1, -1)
             correct_embedding = embeddings[1].reshape(1, -1)
             
-            # Calculate cosine similarity
             similarity = cosine_similarity(user_embedding, correct_embedding)[0][0]
-            
-            # Determine if correct based on similarity threshold
             is_correct = similarity >= self.similarity_threshold
             
-            # Create explanation based on similarity score
             if similarity >= 0.9:
                 explanation = f"Very high semantic similarity ({similarity:.3f})"
             elif similarity >= self.similarity_threshold:
@@ -265,6 +281,8 @@ class SentenceTransformerValidator(LLMValidator):
             else:
                 explanation = f"Low semantic similarity ({similarity:.3f})"
             
+            elapsed = time.time() - start_time
+            logger.info(f"[SentenceTransformer] model={self.model.name} duration={elapsed:.6f}s similarity={similarity:.3f}")
             return AnswerValidationResponse(
                 is_correct=is_correct,
                 confidence=float(similarity),
@@ -272,7 +290,8 @@ class SentenceTransformerValidator(LLMValidator):
             )
             
         except Exception as e:
-            # Fallback to string comparison
+            elapsed = time.time() - start_time
+            logger.error(f"[SentenceTransformer] duration={elapsed:.6f}s error={str(e)}")
             is_correct = user_answer.strip().lower() == correct_answer.strip().lower()
             return AnswerValidationResponse(
                 is_correct=is_correct,
