@@ -5,6 +5,9 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+      cache_from:
+        - jeopardy-backend:latest
+      cache_to: jeopardy-backend:latest
     command: ["python", "scripts/load_jeopardy_csv.py"]
     volumes:
       - jeopardy-db:/app/data
@@ -19,6 +22,9 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+      cache_from:
+        - jeopardy-backend:latest
+      cache_to: jeopardy-backend:latest
     container_name: jeopardy-backend
     ports:
       - "8000:8000"
@@ -39,6 +45,9 @@ services:
       context: ./frontend
       args:
         - BUILD_MODE=static
+      cache_from:
+        - jeopardy-frontend:latest
+      cache_to: jeopardy-frontend:latest
     container_name: jeopardy-frontend
     ports:
       - "5173:80"
@@ -95,4 +104,4 @@ volumes:
 
 networks:
   jeopardy-net:
-    driver: bridge 
+    driver: bridge

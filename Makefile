@@ -1,5 +1,9 @@
 VENV_DIR=.venv
 
+# Enable BuildKit for faster Docker builds
+export DOCKER_BUILDKIT=1
+export COMPOSE_DOCKER_CLI_BUILD=1
+
 .PHONY: venv
 venv:
 	uv venv .venv
@@ -42,6 +46,11 @@ ollama-setup:
 .PHONY: docker-up
 docker-up:
 	docker compose up --build
+
+# Fast start - no rebuild (use after initial build)
+.PHONY: docker-up-fast
+docker-up-fast:
+	docker compose up
 
 .PHONY: docker-up-ollama
 docker-up-ollama:
