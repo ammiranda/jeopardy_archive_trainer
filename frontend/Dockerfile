@@ -8,7 +8,8 @@ COPY vite.config.ts ./
 COPY index.html ./
 COPY public ./public
 COPY src ./src
-RUN npm install
+RUN --mount=type=cache,target=/app/node_modules,id=frontend-node-modules \
+    npm install
 RUN npm run build
 
 # Production image
