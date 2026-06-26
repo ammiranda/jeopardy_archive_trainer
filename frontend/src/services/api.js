@@ -45,5 +45,35 @@ export const apiService = {
                 explanation: result.explanation,
             };
         });
+    },
+    getLLMConfig() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield fetch(`${API_BASE_URL}/config/llm`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`Failed to get LLM config: ${response.statusText}`);
+            }
+            return response.json();
+        });
+    },
+    updateLLMConfig(config) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield fetch(`${API_BASE_URL}/config/llm`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(config),
+            });
+            if (!response.ok) {
+                const error = yield response.json();
+                throw new Error(error.detail || `Failed to update LLM config: ${response.statusText}`);
+            }
+            return response.json();
+        });
     }
 };

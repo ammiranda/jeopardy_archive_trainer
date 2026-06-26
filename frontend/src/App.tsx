@@ -148,6 +148,7 @@ function App() {
           answeredClues={answeredClues}
           incorrectClues={incorrectClues}
           roundTypeLabel={roundTypeLabels[roundType]}
+          roundType={roundType}
         />
       )}
       <ClueModal

@@ -37,8 +37,6 @@ services:
   frontend:
     build:
       context: ./frontend
-      args:
-        - BUILD_MODE=static
     container_name: jeopardy-frontend
     ports:
       - "5173:80"
@@ -50,10 +48,8 @@ services:
   frontend-dev:
     build:
       context: ./frontend
-      args:
-        - BUILD_MODE=dev
+      target: dev
     container_name: jeopardy-frontend-dev
-    command: ["npm", "run", "dev", "--", "--host"]
     ports:
       - "5173:5173"
     depends_on:

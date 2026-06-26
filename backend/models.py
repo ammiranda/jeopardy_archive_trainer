@@ -24,6 +24,8 @@ class Clue(BaseModel):
     question: str
     answer: str
     value: Optional[int]
+    display_value: Optional[int] = None
+    row: Optional[int] = None
     round: RoundType
     air_date: Optional[str]
 
