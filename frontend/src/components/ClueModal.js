@@ -31,7 +31,7 @@ const ClueModal = ({ clue, round, isOpen, onClose, onAnswerSubmit }) => {
                 onAnswerSubmit(true, clue.value || 0);
             }
             else {
-                onAnswerSubmit(false, 0);
+                onAnswerSubmit(false, clue.value || 0);
             }
         }
         catch (error) {
@@ -51,7 +51,7 @@ const ClueModal = ({ clue, round, isOpen, onClose, onAnswerSubmit }) => {
         setValidationResult(null);
         onClose();
     };
-    return (_jsx("div", { className: "modal-overlay", onClick: handleClose, children: _jsxs("div", { className: "modal-content", onClick: (e) => e.stopPropagation(), children: [_jsxs("div", { className: "modal-header", children: [_jsxs("h2", { children: ["$", clue.value || 0] }), _jsx("button", { className: "close-button", onClick: handleClose, children: "\u00D7" })] }), _jsx("div", { className: "modal-body", children: _jsxs("div", { className: "question-display", children: [_jsx("h3", { children: categoryName }), _jsx("h4", { children: "Question:" }), _jsx("p", { className: "question-text", children: clue.question }), _jsxs("div", { className: "answer-form", children: [_jsx("label", { htmlFor: "user-answer", children: "Your Answer:" }), _jsx("input", { id: "user-answer", type: "text", value: userAnswer, onChange: (e) => setUserAnswer(e.target.value), placeholder: "Type your answer...", className: "answer-input", onKeyPress: (e) => {
+    return (_jsx("div", { className: "modal-overlay", onClick: handleClose, children: _jsxs("div", { className: "modal-content", onClick: (e) => e.stopPropagation(), children: [_jsxs("div", { className: "modal-header", children: [_jsxs("h2", { children: ["$", clue.value || 0] }), _jsx("button", { className: "close-button", onClick: handleClose, children: "\u00D7" })] }), _jsx("div", { className: "modal-body", children: _jsxs("div", { className: "question-display", children: [_jsx("h3", { children: categoryName }), _jsx("p", { className: "question-text", children: clue.question }), _jsxs("div", { className: "answer-form", children: [_jsx("label", { htmlFor: "user-answer", children: "Your Answer:" }), _jsx("input", { id: "user-answer", type: "text", value: userAnswer, onChange: (e) => setUserAnswer(e.target.value), placeholder: "Type your answer...", className: "answer-input", onKeyPress: (e) => {
                                             if (e.key === 'Enter' && userAnswer.trim()) {
                                                 handleSubmitAnswer();
                                             }

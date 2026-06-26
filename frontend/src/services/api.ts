@@ -1,4 +1,4 @@
-import type { Round, RoundType } from '../types/game';
+import type { Round, RoundType, LLMConfig, LLMConfigResponse } from '../types/game';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -40,5 +40,37 @@ export const apiService = {
       confidence: result.confidence,
       explanation: result.explanation,
     };
+  },
+
+  async getLLMConfig(): Promise<LLMConfigResponse> {
+    const response = await fetch(`${API_BASE_URL}/config/llm`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get LLM config: ${response.statusText}`);
+    }
+
+    return response.json();
+  },
+
+  async updateLLMConfig(config: LLMConfig): Promise<LLMConfigResponse> {
+    const response = await fetch(`${API_BASE_URL}/config/llm`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(config),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || `Failed to update LLM config: ${response.statusText}`);
+    }
+
+    return response.json();
   }
 };
