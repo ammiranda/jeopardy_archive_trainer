@@ -6,13 +6,12 @@ from .models import (
     LLMProvider, LLMConfig, LLMConfigResponse
 )
 from uuid import uuid5, NAMESPACE_OID, UUID, uuid4
-from typing import List, Optional
+from typing import Optional
 import sqlite3
 import random
 import os
 import requests
 import json
-from pydantic import BaseModel
 import re
 import time
 import logging
@@ -23,7 +22,6 @@ logger = logging.getLogger(__name__)
 try:
     from sentence_transformers import SentenceTransformer
     from sklearn.metrics.pairwise import cosine_similarity
-    import numpy as np
     SENTENCE_TRANSFORMERS_AVAILABLE = True
 except ImportError:
     SENTENCE_TRANSFORMERS_AVAILABLE = False
@@ -283,7 +281,8 @@ class OpenAIValidator(LLMValidator):
             elapsed = time.time() - start_time
             logger.info(f"[OpenAI] model={self.model} duration={elapsed:.3f}s")
             content = response.choices[0].message.content
-            import re, json
+            import re
+            import json
             match = re.search(r'\{.*\}', content, re.DOTALL)
             if match:
                 parsed = json.loads(match.group(0))
@@ -335,7 +334,8 @@ class OpenRouterValidator(LLMValidator):
             elapsed = time.time() - start_time
             logger.info(f"[OpenRouter] model={self.model} duration={elapsed:.3f}s")
             content = response.choices[0].message.content
-            import re, json
+            import re
+            import json
             match = re.search(r'\{.*\}', content, re.DOTALL)
             if match:
                 parsed = json.loads(match.group(0))
