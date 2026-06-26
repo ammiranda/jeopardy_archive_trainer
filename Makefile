@@ -19,7 +19,7 @@ create-env:
 
 .PHONY: lint
 lint:
-	ruff backend
+	ruff check backend
 
 .PHONY: load-db
 load-db:
